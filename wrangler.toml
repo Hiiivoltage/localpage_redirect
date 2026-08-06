@@ -1,0 +1,9 @@
+name = "localpage-redirect"
+type = "javascript"
+account_id = "c45461b00db1d9b25d87a8741db52baf"
+workers_dev = true
+route = "secure.kreokersinc.com/*"
+zone_id = "801a07bef6b22ecf71fe5b02202f256e"
+
+[env.production]
+name = "localpage-redirect"
